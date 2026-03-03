@@ -62,8 +62,9 @@ pip install numpy tifffile antspyx torch torchvision torchaudio scikit-image dip
 
 * **Scenario 3: Start from image folders and a pre-calculated `.mat` file**
   ```shell
-  python integrate_pipeline.py --folder1 /path/33.1_rec --folder2 /path/33.2_rec --transform /path/transform.mat
+  python integrate_pipeline.py --folder1 /path/33.1_rec --folder2 /path/33.2_rec --transform /path/to/transform.mat
   ```
+  *(**Note**: The `--transform` argument must point directly to the specific `.mat` file, NOT the directory containing it).*
   *Pipeline path:* `freq_diff_subtraction`
 
 All standalone optional parameters like `--retrieve-phase-alpha`, `--ants-num-slices`, `--roi`, or `--low_thresh` can be directly provided to the `integrate_pipeline.py` script and will be transparently passed to the lower-level scripts. A log `integration_parameters.txt` is stored when executing parsing decisions.
