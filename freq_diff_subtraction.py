@@ -213,8 +213,12 @@ def main():
         return
         
     print(f"Processing matched {len(common_ids)} slices.")
+    # Set up output directory next to folder1
+    folder1_path = os.path.normpath(args.folder1)
+    parent_dir = os.path.dirname(folder1_path)
+    base_name = os.path.basename(folder1_path)
+    output_dir = os.path.join(parent_dir, f"{base_name}_subtracted")
     
-    output_dir = args.folder1
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
         
