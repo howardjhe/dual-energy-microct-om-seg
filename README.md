@@ -66,4 +66,4 @@ pip install numpy tifffile antspyx torch torchvision torchaudio scikit-image dip
   ```
   *Pipeline path:* `freq_diff_subtraction`
 
-All standalone optional parameters like `--retrieve-phase-alpha`, `--ants-num-slices`, or `--roi` can be directly provided to the `integrate_pipeline.py` script and will be transparently passed to the lower-level scripts. A log `integration_parameters.txt` is stored when executing parsing decisions.
+All standalone optional parameters like `--retrieve-phase-alpha`, `--ants-num-slices`, `--roi`, or `--low_thresh` can be directly provided to the `integrate_pipeline.py` script and will be transparently passed to the lower-level scripts. A log `integration_parameters.txt` is stored when executing parsing decisions.
