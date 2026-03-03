@@ -2,6 +2,16 @@
 
 This repository contains a sequence of scripts that form a unified integration pipeline for dual energy (33.1 and 33.2 keV) micro-CT OM segmentation processing. The typical workflow uses `tomocupy` for phase retrieval reconstruction, `ANTs` for 3D rigid registration, and a custom `PyTorch` script for subtraction and erosion analysis.
 
+## Installation
+
+The pipeline requires several Python packages to run. You can install the core dependencies using `pip`:
+
+```shell
+pip install numpy tifffile antspyx torch torchvision torchaudio scikit-image dipy tqdm tomocupy
+```
+
+*Note: For `torch` (PyTorch) and `tomocupy`, you may need specific installation commands depending on your hardware environment (e.g., CUDA for NVIDIA GPUs).*
+
 ## Core Scripts
 
 ### 1. `tomocupy_process_two_files.py`
