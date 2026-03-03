@@ -33,7 +33,7 @@ def run_v1_pipeline(folder1, folder2, transform, args):
         cmd.extend(["--n", str(args.n)])
     
     print("\n==================================")
-    print("Running Transformation Pipeline V1")
+    print("Running Transformation Pipeline (FDS mask)")
     print(f"Command: {' '.join(cmd)}")
     print("==================================\n")
     
@@ -61,7 +61,7 @@ def save_parameters(args, output_dir):
     print(f"Parameters saved to: {params_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Master Integration Pipeline: Tomocupy -> ANTs -> Transformation V1")
+    parser = argparse.ArgumentParser(description="Master Integration Pipeline: Tomocupy -> ANTs -> Transformation (FDS mask)")
     
     # Input options
     parser.add_argument("--h5-folder", type=str, help="Target folder path containing the .h5 files. If provided, starts from tomocupy step.")
@@ -78,10 +78,10 @@ def main():
     parser.add_argument("--ants-start-slice", type=int, default=None, help="ANTs: Start slice index for registration")
     parser.add_argument("--ants-num-slices", type=int, default=300, help="ANTs: Number of slices to process (Default: 300)")
     
-    # Optionals for Transformation Pipeline V1
-    parser.add_argument("--roi", type=float, help="Pipeline V1: ROI threshold for difference")
-    parser.add_argument("--low_thresh", type=float, help="Pipeline V1: Low threshold for subtraction difference")
-    parser.add_argument("--n", type=int, help="Pipeline V1: Erosion kernel size")
+    # Optionals for Transformation Pipeline (FDS mask)
+    parser.add_argument("--roi", type=float, help="Pipeline (FDS mask): ROI threshold for difference")
+    parser.add_argument("--low_thresh", type=float, help="Pipeline (FDS mask): Low threshold for subtraction difference")
+    parser.add_argument("--n", type=int, help="Pipeline (FDS mask): Erosion kernel size")
     
     args = parser.parse_args()
 
@@ -131,7 +131,10 @@ def main():
         # Step 3: Transformation Pipeline
         print("\n--- STEP 3: Transformation Pipeline ---")
         run_v1_pipeline(folder1, folder2, mat_path, args)
-        save_parameters(args, folder1)
+        
+        folder1_path = os.path.normpath(folder1)
+        output_dir = os.path.join(os.path.dirname(folder1_path), f"{os.path.basename(folder1_path)}_subtracted")
+        save_parameters(args, output_dir)
         
     elif args.folder1 and args.folder2 and not args.transform:
         # PATH 2: Start from folders, need to generate transform
@@ -157,13 +160,19 @@ def main():
         # Step 2: Transformation Pipeline
         print("\n--- STEP 2: Transformation Pipeline ---")
         run_v1_pipeline(args.folder1, args.folder2, mat_path, args)
-        save_parameters(args, args.folder1)
+        
+        folder1_path = os.path.normpath(args.folder1)
+        output_dir = os.path.join(os.path.dirname(folder1_path), f"{os.path.basename(folder1_path)}_subtracted")
+        save_parameters(args, output_dir)
         
     elif args.folder1 and args.folder2 and args.transform:
         # PATH 3: Start from folders and existing transform
         print("PATH 3: Starting from image folders and existing Transform")
         run_v1_pipeline(args.folder1, args.folder2, args.transform, args)
-        save_parameters(args, args.folder1)
+        
+        folder1_path = os.path.normpath(args.folder1)
+        output_dir = os.path.join(os.path.dirname(folder1_path), f"{os.path.basename(folder1_path)}_subtracted")
+        save_parameters(args, output_dir)
         
     else:
         print("Error: Invalid combination of arguments provided.")
