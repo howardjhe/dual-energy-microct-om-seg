@@ -25,11 +25,11 @@ def run_v1_pipeline(folder1, folder2, transform, args):
     ]
     
     # Add optional args if they are provided / overridden
-    if hasattr(args, 'roi') and args.roi:
+    if hasattr(args, 'roi') and args.roi is not None:
         cmd.extend(["--roi", str(args.roi)])
-    if hasattr(args, 'low_thresh') and args.low_thresh:
+    if hasattr(args, 'low_thresh') and args.low_thresh is not None:
         cmd.extend(["--low_thresh", str(args.low_thresh)])
-    if hasattr(args, 'n') and args.n:
+    if hasattr(args, 'n') and args.n is not None:
         cmd.extend(["--n", str(args.n)])
     
     print("\n==================================")
