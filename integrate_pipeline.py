@@ -31,6 +31,10 @@ def run_v1_pipeline(folder1, folder2, transform, args):
         cmd.extend(["--low_thresh", str(args.low_thresh)])
     if hasattr(args, 'n') and args.n is not None:
         cmd.extend(["--n", str(args.n)])
+    if hasattr(args, 'start_slice') and args.start_slice is not None:
+        cmd.extend(["--start-slice", str(args.start_slice)])
+    if hasattr(args, 'end_slice') and args.end_slice is not None:
+        cmd.extend(["--end-slice", str(args.end_slice)])
     
     print("\n==================================")
     print("Running Transformation Pipeline (FDS mask)")
@@ -69,14 +73,12 @@ def main():
     parser.add_argument("--folder2", type=str, help="Moving image folder path (e.g., 33.2 keV rec folder)")
     parser.add_argument("--transform", type=str, help="Path to .mat transform file. If not provided, runs ANTs registration to generate it.")
     
+    # Shared slice interval options
+    parser.add_argument("--start-slice", type=int, default=0, help="Pipeline: Start slice index for processing (Default: 0)")
+    parser.add_argument("--end-slice", type=int, default=2047, help="Pipeline: End slice index for processing (Default: 2047)")
+    
     # Optionals for Tomocupy
     parser.add_argument("--retrieve-phase-alpha", type=float, default=0.0001, help="Tomocupy: Phase retrieval alpha (Default: 0.0001)")
-    parser.add_argument("--tomocupy-start-slice", type=int, default=0, help="Tomocupy: Start slice (Default: 0)")
-    parser.add_argument("--tomocupy-end-slice", type=int, default=2047, help="Tomocupy: End slice (Default: 2047)")
-    
-    # Optionals for ANTs
-    parser.add_argument("--ants-start-slice", type=int, default=None, help="ANTs: Start slice index for registration")
-    parser.add_argument("--ants-num-slices", type=int, default=300, help="ANTs: Number of slices to process (Default: 300)")
     
     # Optionals for Transformation Pipeline (FDS mask)
     parser.add_argument("--roi", type=float, help="Pipeline (FDS mask): ROI threshold for difference")
@@ -96,8 +98,8 @@ def main():
             recon_folders = process_tomocupy_pair(
                 folder_path=args.h5_folder,
                 retrieve_phase_alpha=args.retrieve_phase_alpha,
-                start_slice=args.tomocupy_start_slice,
-                end_slice=args.tomocupy_end_slice
+                start_slice=args.start_slice,
+                end_slice=args.end_slice
             )
         except Exception as e:
             print(f"Tomocupy Step failed: {e}")
@@ -117,8 +119,8 @@ def main():
             _, mat_path = process_registration_pair(
                 folder_p1=folder1,
                 folder_p2=folder2,
-                start_slice=args.ants_start_slice,
-                num_slices=args.ants_num_slices
+                start_slice=args.start_slice,
+                end_slice=args.end_slice
             )
         except Exception as e:
             print(f"ANTs Registration Step failed: {e}")
@@ -146,8 +148,8 @@ def main():
             _, mat_path = process_registration_pair(
                 folder_p1=args.folder1,
                 folder_p2=args.folder2,
-                start_slice=args.ants_start_slice,
-                num_slices=args.ants_num_slices
+                start_slice=args.start_slice,
+                end_slice=args.end_slice
             )
         except Exception as e:
             print(f"ANTs Registration Step failed: {e}")
