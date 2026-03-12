@@ -203,13 +203,21 @@ def main():
     parser.add_argument("--low_thresh", type=float, default=5e-6, help="Low threshold for subtraction difference")
     parser.add_argument("--n", type=int, default=10, help="Erosion kernel size")
     parser.add_argument("--iterations", type=int, default=1, help="Number of erosion iterations")
+    parser.add_argument("--start-slice", type=int, default=0, help="Start slice index")
+    parser.add_argument("--end-slice", type=int, default=2047, help="End slice index")
     
     args = parser.parse_args()
     
     files1, files2, common_ids = get_matched_files(args.folder1, args.folder2)
     
+    # Filter by slice interval
+    filtered_indices = [i for i, cid in enumerate(common_ids) if args.start_slice <= cid <= args.end_slice]
+    common_ids = [common_ids[i] for i in filtered_indices]
+    files1 = [files1[i] for i in filtered_indices]
+    files2 = [files2[i] for i in filtered_indices]
+    
     if not common_ids:
-        print("Error: No matching slices found.")
+        print("Error: No matching slices found within the specified range.")
         return
         
     print(f"Processing matched {len(common_ids)} slices.")
