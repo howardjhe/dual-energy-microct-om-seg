@@ -28,8 +28,8 @@ pip install numpy tifffile antspyx torch torchvision torchaudio scikit-image dip
 **Key Arguments:**
 - `folder_p1`: Path to fixed image sequence (e.g., `33.1_rec`).
 - `folder_p2`: Path to moving image sequence (e.g., `33.2_rec`).
-- `--start-slice`: Starting slice index for registration stack (Defaults to stack midpoint).
-- `--num-slices`: Number of slices to process for a sub-chunk (Default: `300`).
+- `--start-slice`: Starting slice index for registration stack.
+- `--end-slice`: Ending slice index for registration stack.
 - `--output-dir`: Optional custom output directory.
 
 ### 3. `freq_diff_subtraction.py`
@@ -67,4 +67,4 @@ pip install numpy tifffile antspyx torch torchvision torchaudio scikit-image dip
   *(**Note**: The `--transform` argument must point directly to the specific `.mat` file, NOT the directory containing it).*
   *Pipeline path:* `freq_diff_subtraction`
 
-All standalone optional parameters like `--retrieve-phase-alpha`, `--ants-num-slices`, `--roi`, or `--low_thresh` can be directly provided to the `integrate_pipeline.py` script and will be transparently passed to the lower-level scripts. A log `integration_parameters.txt` is stored when executing parsing decisions.
+All standalone optional parameters like `--retrieve-phase-alpha`, `--start-slice`, `--end-slice`, `--roi`, or `--low_thresh` can be directly provided to the `integrate_pipeline.py` script and will be transparently passed to the lower-level scripts. A log `integration_parameters.txt` is stored when executing parsing decisions.
