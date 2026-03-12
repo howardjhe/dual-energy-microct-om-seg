@@ -1,4 +1,5 @@
 import os
+import re
 import argparse
 import shutil
 import gc
@@ -21,34 +22,45 @@ def clear_memory():
     gc.collect()
     print("Memory allocation cleared.")
 
-def load_tiff_sequence(folder, start_slice, num_slices):
+def load_tiff_sequence(folder, start_slice, end_slice):
     """
-    Load a specified range of a TIF sequence.
-    If start_slice is None, it takes the midpoint sequence as the start.
+    Load a specified range of a TIF sequence based on slice numbers in filenames.
     """
-    file_list = sorted([os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(".tiff") or f.endswith(".tif")])
+    file_list = [f for f in os.listdir(folder) if f.endswith(".tiff") or f.endswith(".tif")]
     
-    total_files = len(file_list)
-    if total_files == 0:
+    if len(file_list) == 0:
         raise ValueError(f"No TIFF files found in {folder}")
 
-    if start_slice is None:
-        # Defaults to the midpoint of the stack (extracting num_slices from the center)
-        # We start by stepping exactly back half of num_slices from the middle point
-        start_slice = max(0, (total_files - num_slices) // 2)
-
-    end_slice = min(start_slice + num_slices, total_files)
-    file_list = file_list[start_slice:end_slice]
+    parsed_files = []
+    pattern_generic = r"(\d+)(?=\.\w+$)"
+    for f in file_list:
+        m = re.search(pattern_generic, f)
+        if m:
+            parsed_files.append((int(m.group(1)), os.path.join(folder, f)))
     
+    parsed_files.sort(key=lambda x: x[0])
+    
+    if start_slice is not None and end_slice is not None:
+        filtered_files = [f_path for idx, f_path in parsed_files if start_slice <= idx <= end_slice]
+    else:
+        filtered_files = [f_path for idx, f_path in parsed_files]
+        
+    if not filtered_files:
+        raise ValueError(f"No TIFF files found in {folder} within the specified range.")
+
     def load_image(file):
         return tiff.imread(file)
     
     with ThreadPoolExecutor() as executor:
-        volume = list(executor.map(load_image, file_list))
+        volume = list(executor.map(load_image, filtered_files))
     
-    return np.stack(volume, axis=0).astype(np.float32), start_slice
+    # We also return the actual starting index for the transform name
+    m = re.search(pattern_generic, filtered_files[0])
+    actual_start = int(m.group(1)) if m else 0
+    
+    return np.stack(volume, axis=0).astype(np.float32), actual_start, len(filtered_files)
 
-def process_registration_pair(folder_p1, folder_p2, start_slice=None, num_slices=300, output_dir=None):
+def process_registration_pair(folder_p1, folder_p2, start_slice=None, end_slice=None, output_dir=None):
     """
     Process two specifically provided reconstructed image sequence folders.
     folder_p1 serves as the fixed image (e.g. 33.1 keV),
@@ -72,8 +84,13 @@ def process_registration_pair(folder_p1, folder_p2, start_slice=None, num_slices
     print(f"Fixed Folder (P1): {folder_p1}")
     print(f"Moving Folder (P2): {folder_p2}")
     
-    vol_p1, actual_start = load_tiff_sequence(str(folder_p1), start_slice, num_slices)
-    vol_p2, _ = load_tiff_sequence(str(folder_p2), actual_start, num_slices)
+    vol_p1, actual_start, num_slices_1 = load_tiff_sequence(str(folder_p1), start_slice, end_slice)
+    vol_p2, _, num_slices_2 = load_tiff_sequence(str(folder_p2), start_slice, end_slice)
+    
+    # Use the minimum number of slices loaded to ensure shapes match
+    num_slices = min(num_slices_1, num_slices_2)
+    vol_p1 = vol_p1[:num_slices]
+    vol_p2 = vol_p2[:num_slices]
     
     print(f"Start Slice: {actual_start}, Num Slices: {num_slices}")
 
@@ -114,8 +131,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run ANTs 3D rigid registration processing for two specified folders.")
     parser.add_argument("folder_p1", type=str, help="Fixed image folder path (e.g., 33.1 keV rec folder)")
     parser.add_argument("folder_p2", type=str, help="Moving image folder path (e.g., 33.2 keV rec folder)")
-    parser.add_argument("--start-slice", type=int, default=None, help="Start slice index. Defaults to the center segment's starting point of the stack.")
-    parser.add_argument("--num-slices", type=int, default=300, help="Number of slices to process (Default: 300)")
+    parser.add_argument("--start-slice", type=int, default=None, help="Start slice index.")
+    parser.add_argument("--end-slice", type=int, default=None, help="End slice index.")
     parser.add_argument("--output-dir", type=str, default=None, help="Output save path. Defaults to a new directory beside folder_p1.")
     
     args = parser.parse_args()
@@ -125,7 +142,7 @@ if __name__ == "__main__":
             folder_p1=args.folder_p1,
             folder_p2=args.folder_p2,
             start_slice=args.start_slice,
-            num_slices=args.num_slices,
+            end_slice=args.end_slice,
             output_dir=args.output_dir
         )
         print("\n=== Processing Results ===")
